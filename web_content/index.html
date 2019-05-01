@@ -1,0 +1,715 @@
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<link rel="prefetch" href="https://messages2.me/pwr_symbol.svg" />
+		<link rel="prefetch" href="https://messages2.me/pwr_symbol-power_on.svg" />
+		<link rel="prefetch" href="https://messages2.me/pwr_symbol-power_off.svg" />
+		<!--
+			Settings Icon made by Gregor Cresnar https://www.flaticon.com/authors/gregor-cresnar from www.flaticon.com 
+		-->
+		<style type="text/css">
+			:root {
+				--bg: #F6F9FC;
+				--dark: #333333;
+				--blue: #0088CC;
+				--blueLogo: #1487BD;
+				--light-blue: #33aadd;
+				--light-blue-border: #0088bb;
+
+				--links: #666666;
+				--links-hover: #FFFFFF;
+
+				--light-grey: #ecf2f5;
+				--light-grey-darker: #D4E1E8;
+				--light-grey-border: #bcd;
+
+				--power-off: #F06060;
+				--power-on: #8CBEB2;
+			}
+
+			body {
+				background-color: var(--bg);
+				margin: 0px;
+				padding: 0px;
+				font: normal 100% sans-serif;
+				font-family: sans-serif!important;
+			}
+
+			.container {
+				display: flex;
+				height: 100%;
+			}
+
+				.rows {
+					flex-direction: column;
+					flex-grow: 1;
+				}
+
+			.menu {
+				background-color: var(--dark);
+				padding: 15px;
+				display: flex;
+				flex-direction: row;
+				border-bottom: 5px solid var(--blue);
+			}
+
+				.logo {
+					flex-grow: 1;
+					font-weight: bold;
+					font-size: 24px;
+					color: #FFFFFF;
+				}
+
+				.logo > span {
+					color: var(--blueLogo);
+				}
+
+				.buttons {
+					margin-top: 5px;
+				}
+
+				.buttons > button {
+					border: 0px;
+					background: transparent;
+					color: var(--links);
+				}
+
+				.buttons > button:hover {
+					color: var(--links-hover);
+					cursor: pointer;
+				}
+
+			.content {
+				padding: 20px;
+				display: flex;
+				flex-direction: row;
+				flex-grow: 1;
+			}
+
+			.configuration {
+				display: flex;
+				flex-direction: column;
+				margin: 10px;
+
+				background-color: var(--light-grey);
+				border: 1px solid var(--light-grey-border);
+			}
+
+				.configuration.expand {
+					flex-grow: 1;
+				}
+
+				.header {
+					background-color: var(--light-blue);
+					color: #FFFFFF;
+					align-items: center;
+					justify-content: center;
+					text-align: center;
+					border-bottom: 1px solid var(--light-blue-border);
+					padding: 4px;
+					font-weight: bold;
+				}
+
+				.entries {
+					display: flex;
+					flex-direction: column;
+
+					flex-grow: 1;
+				}
+
+					.entry {
+						padding: 3px;
+						display: flex;
+						flex-direction: row;
+					}
+
+					.entry.button {
+						cursor: pointer;
+					}
+
+					.entry.button:hover {
+						background-color: var(--links);
+						color: var(--links-hover);
+					}
+
+					.entry:nth-child(even) {background-color: var(--light-grey)}
+					.entry:nth-child(odd) {background-color: var(--light-grey-darker)}
+
+						.label {
+							flex-grow: 0;
+							min-width: 120px;
+						}
+
+						.value {
+							flex-grow: 1;
+							display: flex;
+							padding-left: 10px;
+						}
+
+						.value > * {
+							flex-grow: 1;
+						}
+
+				.machine.active {
+					background-color: var(--light-blue-border);
+					color: #FFFFFF;
+				}
+
+				.power_button {
+					background-image: url('pwr_symbol.svg');
+					width: 24px;
+					height: 24px;
+					background-size: 22px 22px;
+					background-repeat: no-repeat;
+					background-position: center;
+					border: 0px;
+					background-color: transparent;
+					padding: 3px;
+				}
+
+					.power_button.on {
+						background-image: url('pwr_symbol-power_on.svg');
+					}
+					.power_button.off {
+						background-image: url('pwr_symbol-power_off.svg');
+					}
+
+				.settings_button {
+					background-image: url('settings.svg');
+					width: 24px;
+					height: 24px;
+					background-size: 22px 22px;
+					background-repeat: no-repeat;
+					background-position: center;
+					border: 0px;
+					background-color: transparent;
+					padding: 3px;
+				}
+
+				.popup {
+					position: absolute;
+					left: 50%;
+					top: 50%;
+					background-color: #272822;
+					border: 1px solid #49483E;
+					display: flex;
+					min-height: 0;
+					flex-direction: column;
+					flex-grow: 1;
+					flex-shrink: 0;
+					flex-basis: 100%;
+				}
+					.popup > .title {
+						font-weight: bold;
+						font-size: 14px;
+						padding: 5px;
+						margin: 5px;
+						color: #66D9EF;
+						flex: 1;
+					}
+
+					.popup > .body {
+						font-size: 12px;
+						padding: 5px;
+						margin: 5px;
+						color: #F8F8F2;
+						flex: 1;
+
+						display: flex;
+						flex-direction: column;
+					}
+
+						.popup > .body > * {
+							flex: 1;
+							display: flex;
+							flex-direction: column;
+						}
+
+					.popup > .buttons {
+						display: flex;
+						flex-direction: column;
+					}
+						.popup > .buttons > .Save {
+							flex: 1;
+							color: var(--power-on);
+						}
+						.popup > .buttons > .Discard {
+							flex: 1;
+							color: var(--power-off);
+						}
+		</style>
+		<script type="text/javascript">
+			let machine = null;
+			let timers = {};
+			let socket = null;
+			let send_queue = [];
+			let resource_handlers = {};
+
+			let machines = {}
+			let config = {}
+
+			function print(s) { console.log(s); }
+
+			function time() {
+				return Math.round((new Date()).getTime() / 1000);
+			}
+
+			function isset(obj) {
+				if(typeof obj !== 'undefined')
+					return true;
+				return false;
+			}
+
+			function sizeOf(o) { if(!o) return 0; return Object.keys(o).length; }
+
+			function setTimer(name, func, time=10) {
+				timers[name] = setInterval(func, time);
+			}
+
+			function clearTimer(name) {
+				if(isset(timers[name])) {
+					window.clearInterval(timers[name]);
+					delete(timers[name]);
+					return true;
+				}
+				return false;
+			}
+
+			let elements = {}; // Used for popups
+			function popup(title_content, body_content, buttons_struct=null) {
+				let div = document.createElement('div');
+				div.id = 'popup_'+(Math.random() * 1001);
+				div.classList = 'popup';
+				let title = document.createElement('div');
+				title.classList = 'title';
+				if(typeof title_content === 'string')
+					title.innerHTML = title_content;
+				else
+					title.appendChild(title_content);
+				let body = document.createElement('div');
+				body.classList = 'body';
+				if(typeof body_content === 'string')
+					body.innerHTML = body_content;
+				else
+					body.appendChild(body_content);
+				
+				div.appendChild(title);
+				div.appendChild(body);
+				
+				if(buttons_struct) {
+					let buttons = document.createElement('div');
+					buttons.classList = 'buttons';
+					Object.keys(buttons_struct).forEach(function(label, index) {
+						let button = document.createElement('button');
+						button.innerHTML = label;
+						button.classList = label;
+						button.addEventListener('click', function(event) {
+							buttons_struct[label](div);
+						});
+						buttons.appendChild(button);
+					})
+					div.appendChild(buttons);
+				}
+				elements[title] = div;
+				document.getElementsByTagName("body")[0].appendChild(div);
+				return div;
+			}
+
+			function dispatch_send() {
+				for (let i=0; i<send_queue.length; i++) {
+					if (socket && socket.readyState == 1) {
+						data = send_queue.pop();
+						console.log("Sending:");
+						console.log(data);
+						socket.send(data);
+					} else {
+						timers['resend'] = setTimeout(function() {
+							dispatch_send();
+							clearTimer('resend');
+						}, 500)
+					}
+				}
+			}
+			function reconnect() {
+				if (socket)
+					socket.close();
+				socket = new WebSocket('wss://deployment.messages2.me');
+				socket.addEventListener('open', function (event) {
+					console.log("Connected");
+					dispatch_send();
+				});
+				socket.addEventListener('message', function (event) {
+					let data = event.data;
+					if(typeof data == "string") {
+						try {
+							data = JSON.parse(data);
+						} catch(err) {
+							//console.log(err);
+						}
+					}
+					recv(data);
+				});
+				socket.addEventListener('close', function (event) {
+					socket.close();
+					timers['reconnecting'] = setTimeout(function() {
+						reconnect();
+					}, 1000);
+				});
+			}
+			function send(data) {
+				if (typeof data == "object")
+					data = JSON.stringify(data);
+				send_queue.push(data);
+				dispatch_send();
+			}
+			function recv(data) {
+				console.log("Recieved:");
+				console.log(data);
+				// Check if we have a specific event trigger (resource: <trigger>) for this frame
+				if (typeof data['resource'] !== 'undefined' && typeof resource_handlers[data['resource']] !== 'undefined') {
+					resource_handlers[data['resource']](data);
+					// Since it's a trigger, we'll deactivate the trigger.
+					//delete(resource_handlers[data['resource']]);
+				} else if (typeof data['uuid'] !== 'undefined' && typeof resource_handlers[data['uuid']] !== 'undefined') {
+					resource_handlers[data['uuid']](data);
+					// As it turns out, removing a UUID when doing a media upload is a bad idea.. comes in chunks ya know.
+					//delete(resource_handlers[data['uuid']]);
+				} else if (typeof data['action'] !== 'undefined' && typeof resource_handlers[data['action']] !== 'undefined') {
+					resource_handlers[data['action']](data);
+					//delete(resource_handlers[data['uuid']]);
+				} else if (typeof data['type'] !== 'undefined' && typeof resource_handlers[data['type']] !== 'undefined') {
+					resource_handlers[data['type']](data);
+				} else {
+					// Also traverse the structure to see if we got any additional data
+					// that we can parse.
+					Object.keys(data).forEach(function(key, index) {
+						if(typeof resource_handlers[key] !== 'undefined') {
+							resource_handlers[key](data);
+						}
+					});
+				}
+			}
+
+			function config_refresh() {
+
+			}
+
+			function machine_refresh() {
+				let dom_machines = document.getElementById('machines');
+				dom_machines.innerHTML = '';
+
+				Object.keys(machines).forEach(function(key, index) {
+					let machine = document.createElement('div');
+					machine.classList = 'entry button machine';
+					machine.id=key;
+					machine.setAttribute('machine', key);
+					machine.innerHTML = key;
+					machine.addEventListener('click', function() {
+						select_machine(key);
+					});
+					dom_machines.appendChild(machine);
+				})
+
+				if (!machine) {
+					if(!machines['selected'])
+						select_machine('default');
+					else
+						select_machine(machines['selected']);
+				} else {
+					select_machine(machine);
+				}
+			}
+
+			function select_machine(id) {
+				machine = id;
+				let dom_machines = document.querySelectorAll('.machine');
+				for(let i=0; i<dom_machines.length; i++) {
+					if(dom_machines[i].classList.contains('active'))
+						dom_machines[i].classList.toggle('active');
+				}
+				document.getElementById(id).classList.toggle('active');
+
+				config_refresh();
+			}
+
+			function config_refresh() {
+				let iso = document.getElementById("iso");
+				let template = document.getElementById("template");
+				let desktop = document.getElementById('desktop');
+				let web_browser = document.getElementById('web_browser');
+				let applications = document.getElementById("applications");
+
+				iso.innerHTML = '';
+				Object.keys(config['iso']).forEach(function(key, index) {
+					let option = document.createElement('option');
+					option.value = key;
+					option.innerHTML = config['iso'][key];
+					iso.appendChild(option);
+
+					if(machines[machine]['iso'] == key)
+						iso.selectedIndex = index;
+				})
+
+				template.innerHTML = '';
+				Object.keys(config['template']).forEach(function(key, index) {
+					let option = document.createElement('option');
+					option.value = key;
+					option.innerHTML = config['template'][key];
+					template.appendChild(option);
+
+					if(machines[machine]['template'] == key)
+						template.selectedIndex = index;
+				})
+
+				desktop.innerHTML = '';
+				Object.keys(config['desktop']).forEach(function(key, index) {
+					let option = document.createElement('option');
+					option.value = key;
+					option.innerHTML = config['desktop'][key];
+					desktop.appendChild(option);
+
+					if(machines[machine]['desktop'] == key)
+						desktop.selectedIndex = index;
+				})
+
+				web_browser.innerHTML = '';
+				Object.keys(config['web_browser']).forEach(function(key, index) {
+					let option = document.createElement('option');
+					option.value = key;
+					option.innerHTML = config['web_browser'][key];
+					web_browser.appendChild(option);
+
+					if(machines[machine]['web_browser'] == key)
+						web_browser.selectedIndex = index;
+				})
+
+				applications.innerHTML = '';
+				Object.keys(config['applications']).forEach(function(key, index) {
+					let option = document.createElement('option');
+					option.value = key;
+					option.innerHTML = config['applications'][key];
+					applications.appendChild(option);
+
+					if(machines[machine]['applications']) {
+						if(machines[machine]['applications'].indexOf(key) != -1)
+							option.selected = true;
+					}
+				})
+			}
+
+			function machine_listing(data) {
+				machines = data['result']
+				machine_refresh();
+			}
+
+			function config_update(data) {
+				config = data['result'];
+				send({'action': 'retrieve', 'resource': 'machinelist'});
+			}
+
+			function power_state(data) {
+				let power_button = document.getElementById('power_button');
+				if(data['state'] == 'on') {
+					power_button.classList = 'power_button on'
+				} else if(data['state'] == 'off') {
+					power_button.classList = 'power_button off'
+				} else {
+					power_button.classList = 'power_button' // Shouldn't even be here, but who knows..
+				}
+			}
+
+			reconnect();
+			window.onload = function() {
+				resource_handlers['machinelist'] = machine_listing
+				resource_handlers['config'] = config_update
+				resource_handlers['dhcp'] = power_state
+
+				let iso = document.getElementById("iso");
+					let i = iso.options[iso.selectedIndex] ? iso.options[iso.selectedIndex].value : null
+				let template = document.getElementById("template");
+					let t = template.options[template.selectedIndex] ? template.options[template.selectedIndex].value : null
+				let desktop = document.getElementById('desktop');
+					let d = desktop.options[desktop.selectedIndex] ? desktop.options[desktop.selectedIndex].value : null	
+				let web_browser = document.getElementById('web_browser');
+					let w = web_browser.options[web_browser.selectedIndex] ? web_browser.options[web_browser.selectedIndex].value : null
+				let applications = document.getElementById("applications");
+					let a = applications.options[applications.selectedIndex] ? applications.options[applications.selectedIndex].value : null
+
+				document.getElementById('save_machine_id').addEventListener('click', function() {
+					send({'action' : 'set', 'type' : 'machine', 'id' : document.getElementById('add_machine_id').value, 'data' : {
+						'iso' : i,
+						'template' : t,
+						'desktop' : d,
+						'web_browser' : w,
+						'applications' : a 
+					}})
+				})
+
+				document.getElementById('power_button').addEventListener('click', function() {
+					send({'action': 'toggle', 'resource': 'dhcp'});
+				})
+
+				document.getElementById('settings_button').addEventListener('click', function() {
+					// ---
+					let interfaces = ['all', 'eth0'] //TODO: Remove for something from the server
+					// ---
+
+					let popup_body = document.createElement('div');
+
+					let interface_lbl = document.createElement('label');
+					let interface = document.createElement('select')
+					interface.id = 'interface';
+					for(let i=0; i<interfaces.length; i++) {
+						let option = document.createElement('option');
+						option.value = interfaces[i];
+						option.innerHTML = interfaces[i];
+						interface.appendChild(option);
+					}
+					interface_lbl.for='interface';
+					interface_lbl.innerHTML = 'Bind to interface:'
+
+					let subnet_lbl = document.createElement('label');
+					let subnet = document.createElement('input');
+					subnet.id = 'subnet';
+					subnet.placeholder = 'Subnet (Ex: 192.168.0.0)'
+					subnet.value = '172.16.0.0'
+					subnet_lbl.for='subnet';
+					subnet_lbl.innerHTML = 'Subnet:'
+
+					let netmask_lbl = document.createElement('label');
+					let netmask = document.createElement('input');
+					netmask.id = 'netmask';
+					netmask.placeholder = 'Netmask (Ex: 255.255.255.0)'
+					netmask.value = '255.255.255.0'
+					netmask_lbl.for='netmask';
+					netmask_lbl.innerHTML = 'Netmask:'
+
+					popup_body.appendChild(interface_lbl);
+					popup_body.appendChild(interface);
+					popup_body.appendChild(subnet_lbl);
+					popup_body.appendChild(subnet);
+					popup_body.appendChild(netmask_lbl);
+					popup_body.appendChild(netmask);
+
+					popup("Change DHCP Settings", popup_body, {
+						"Save" : function(div) {
+							//send({type: "lobby", action: "join", uuid: data['uuid'], 'profile' : e.options[e.selectedIndex].value, token: token});
+							div.remove();
+						},
+						"Discard" : function(div) {
+							div.remove();
+						},
+					});
+				})
+
+				send({'action': 'retrieve', 'resource': 'config'});
+				send({'action': 'get', 'resource': 'dhcp'});
+			}
+		</script>
+	</head>
+	<body>
+		<div class="container rows">
+			<div class="menu">
+				<div class="logo">
+					Arch<span>PXE</span>
+					<button id="settings_button" class="settings_button"></button>
+					<button id="power_button" class="power_button"></button>
+				</div>
+				<div class="buttons">
+					<button>Home</button>
+					<button>Machines</button>
+					<button>Wiki</button>
+				</div>
+			</div>
+			<div id="content" class="content">
+				<div class="configuration">
+					<div class="header">Machine Inventory</div>
+					<div class="entries" id="machines">
+					</div>
+					<input type="text" id="add_machine_id" placeholder="Add MAC address...">
+					<button id="save_machine_id">Save Config</button>
+				</div>
+
+				<div class="configuration">
+					<div class="header">Package settings</div>
+					<div class="entries">
+						<div class="entry">
+							<div class="label">Select ISO:</div>
+							<div class="value">
+								<select id="iso">
+									<!-- <option value="archlinux-2019.05.01.iso">Arch Linux 2019.05.01</option>
+									<option value="archlinux_unattended-08.04.2019.iso" SELECTED>Arch Linux Unattended 08.04.2019</option>
+									<option value="CentOS-8-x86_64-DVD-1810.iso">CentOS 8</option> -->
+								</select>
+							</div>
+						</div>
+						<div class="entry">
+							<div class="label">Select Template:</div>
+							<div class="value">
+								<select id="template">
+									<!-- <option value="">No template</option>
+									<option value="gnome workstation">Gnome Workstation</option>
+									<option value="kde workstation">KDE Workstation</option>
+									<option value="awesome workstation" SELECTED>Awesome Workstation</option> -->
+								</select>
+							</div>
+						</div>
+						<div class="entry">
+							<div class="label">Desktop:</div>
+							<div class="value">
+								<select multiple="" size="5" id="desktop">
+									<!-- <option value="awesome" SELECTED>Awesome</option>
+									<option value="kde">KDE</option>
+									<option value="gnome">Gnome</option> -->
+								</select>
+							</div>
+						</div>
+						<div class="entry">
+							<div class="label">Web browser:</div>
+							<div class="value">
+								<select multiple="" size="5" id="web_browser">
+									<!-- <option value="chromium" SELECTED>Chromium</option>
+									<option value="chrome">Chrome</option>
+									<option value="firefox">Firefox</option>
+									<option value="opera">Opera</option> -->
+								</select>
+							</div>
+						</div>
+						<div class="entry">
+							<div class="label">Applications</div>
+							<div class="value">
+								<select multiple="" size="10" id="applications">
+									<!--
+									<option value="lollypop">lollypop</option>
+									<option value="qemu">Qemu</option>
+									<option value="git">Git</option>
+									<option value="openssh">Openssh</option>
+									<option value="nano">nano</option>
+									<option value="wget">wget</option>
+									<option value="sublime-text-dev">Sublime</option>
+									-->
+								</select>
+							</div>
+						</div>
+					</div>
+					<input type="text" id="add_custom_package" placeholder="Add custom package">
+					<button id="save_custom_package">Add package</button>
+				</div>
+				<div class="configuration expand">
+					<div class="header">Deployment history</div>
+					<div class="entries">
+						<div class="entry">
+							<div class="label">2019-04-04</div> <div class="value">00:11:22:33:44:55</div>
+						</div>
+						<div class="entry">
+							<div class="label">2019-04-05</div> <div class="value">00:11:22:33:44:55</div>
+						</div>
+						<div class="entry">
+							<div class="label">2019-04-13</div> <div class="value">00:11:22:33:44:55</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
