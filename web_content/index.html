@@ -247,6 +247,8 @@
 
 			let machines = {}
 			let config = {}
+			let dhcp = {}
+			let general = {}
 
 			function print(s) { console.log(s); }
 
@@ -503,7 +505,9 @@
 			}
 
 			function config_update(data) {
-				config = data['result'];
+				config = data['machines'];
+				dhcp = data['dhcp'];
+				general = data['general'];
 				send({'action': 'retrieve', 'resource': 'machinelist'});
 			}
 
@@ -550,21 +554,21 @@
 				})
 
 				document.getElementById('settings_button').addEventListener('click', function() {
-					// ---
-					let interfaces = ['all', 'eth0'] //TODO: Remove for something from the server
-					// ---
-
 					let popup_body = document.createElement('div');
 
 					let interface_lbl = document.createElement('label');
 					let interface = document.createElement('select')
 					interface.id = 'interface';
-					for(let i=0; i<interfaces.length; i++) {
+					general['interfaces']['all'] = {};
+					Object.keys(general['interfaces']).forEach(function(ifname, index) {
 						let option = document.createElement('option');
-						option.value = interfaces[i];
-						option.innerHTML = interfaces[i];
+						option.value = ifname;
+						option.innerHTML = ifname;
 						interface.appendChild(option);
-					}
+
+						if(ifname == dhcp['interface'])
+							interface.selectedIndex = index;
+					})
 					interface_lbl.for='interface';
 					interface_lbl.innerHTML = 'Bind to interface:'
 
@@ -572,7 +576,7 @@
 					let subnet = document.createElement('input');
 					subnet.id = 'subnet';
 					subnet.placeholder = 'Subnet (Ex: 192.168.0.0)'
-					subnet.value = '172.16.0.0'
+					subnet.value = dhcp['subnet']
 					subnet_lbl.for='subnet';
 					subnet_lbl.innerHTML = 'Subnet:'
 
@@ -580,9 +584,17 @@
 					let netmask = document.createElement('input');
 					netmask.id = 'netmask';
 					netmask.placeholder = 'Netmask (Ex: 255.255.255.0)'
-					netmask.value = '255.255.255.0'
+					netmask.value = dhcp['netmask']
 					netmask_lbl.for='netmask';
 					netmask_lbl.innerHTML = 'Netmask:'
+
+					let gateway_lbl = document.createElement('label');
+					let gateway = document.createElement('input');
+					gateway.id = 'gateway';
+					gateway.placeholder = 'Gateway (Ex: 192.168.0.1)'
+					gateway.value = dhcp['gateway']
+					gateway_lbl.for='gateway';
+					gateway_lbl.innerHTML = 'Gateway: <i>(for internet sharing)</i>'
 
 					popup_body.appendChild(interface_lbl);
 					popup_body.appendChild(interface);
@@ -590,10 +602,12 @@
 					popup_body.appendChild(subnet);
 					popup_body.appendChild(netmask_lbl);
 					popup_body.appendChild(netmask);
+					popup_body.appendChild(gateway_lbl)
+					popup_body.appendChild(gateway);
 
 					popup("Change DHCP Settings", popup_body, {
 						"Save" : function(div) {
-							//send({type: "lobby", action: "join", uuid: data['uuid'], 'profile' : e.options[e.selectedIndex].value, token: token});
+							send({action: "store", resource: "dhcp", 'data' : {'interface': interface.options[interface.selectedIndex].value, 'subnet' : subnet.value, 'netmask': netmask.value}});
 							div.remove();
 						},
 						"Discard" : function(div) {

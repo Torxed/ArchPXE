@@ -6,4 +6,4 @@ class parser():
 	def parse(client, data, headers, fileno, addr, *args, **kwargs):
 		if set(('action', 'resource')) <= data.keys():
 			if data['action'] == 'retrieve' and data['resource'] == 'config':
-				return {**data, 'result' : datastore['configs']}
+				return {**data, 'machines' : datastore['configs'], 'general' : datastore['general'], 'dhcp' : datastore['dhcp']}

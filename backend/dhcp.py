@@ -10,5 +10,8 @@ class parser():
 				if data['action'] == 'toggle':
 					if datastore['dhcp']['state'] == 'on': datastore['dhcp']['state'] = 'off'
 					elif datastore['dhcp']['state'] == 'off': datastore['dhcp']['state'] = 'on'
-					
+
+				elif data['action'] == 'store':
+					datastore['dhcp'] = {**datastore['dhcp'], **data['data']}
+
 				return {**data, 'state' : datastore['dhcp']['state']}

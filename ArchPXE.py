@@ -1,20 +1,88 @@
 import signal, time, importlib
-from os import walk
+from os import walk, statvfs
 from os.path import splitext, basename
 
 from hashlib import sha512
 from os import urandom
 
+try:
+	import psutil
+except:
+	## Time to monkey patch in all the stats and psutil fuctions if it isn't installed.
+
+	class mem():
+		def __init__(self, free, percent=-1):
+			self.free = free
+			self.percent = percent
+
+	class disk():
+		def __init__(self, size, free, percent):
+			self.size = size
+			self.free = free
+			self.percent = percent
+
+	class iostat():
+		def __init__(self, interface, bytes_sent=0, bytes_recv=0):
+			self.interface = interface
+			self.bytes_recv = int(bytes_recv)
+			self.bytes_sent = int(bytes_sent)
+		def __repr__(self, *args, **kwargs):
+			return f'iostat@{self.interface}[bytes_sent: {self.bytes_sent}, bytes_recv: {self.bytes_recv}]'
+
+	class psutil():
+		def cpu_percent(interval=0):
+			## This just counts the ammount of time the CPU has spent. Find a better way!
+			with cmd("grep 'cpu ' /proc/stat | awk '{usage=($2+$4)*100/($2+$4+$5)} END {print usage}'") as output:
+				for line in output:
+					return float(line.strip().decode('UTF-8'))
+		
+		def virtual_memory():
+			with cmd("grep 'MemFree: ' /proc/meminfo | awk '{free=($2)} END {print free}'") as output:
+				for line in output:
+					return mem(float(line.strip().decode('UTF-8')))
+
+		def disk_usage(partition):
+			disk_stats = statvfs(partition)
+			free_size = disk_stats.f_bfree * disk_stats.f_bsize
+			disk_size = disk_stats.f_blocks * disk_stats.f_bsize
+			percent = (100/disk_size)*free_size
+			return disk(disk_size, free_size, percent)
+
+		def net_if_addrs():
+			interfaces = {}
+			for root, folders, files in walk('/sys/class/net/'):
+				for name in folders:
+					interfaces[name] = {}
+			return interfaces
+
+		def net_io_counters(pernic=True):
+			data = {}
+			for interface in psutil.net_if_addrs().keys():
+				with cmd("grep '{interface}:' /proc/net/dev | awk '{{recv=$2}}{{send=$10}} END {{print send,recv}}'".format(interface=interface)) as output:
+					for line in output:
+						data[interface] = iostat(interface, *line.strip().decode('UTF-8').split(' ',1))
+			return data
+
 def _gen_uid():
 	return sha512(urandom(256)).hexdigest()
+
 
 __builtins__.__dict__['LEVEL'] = 5
 __builtins__.__dict__['gen_uid'] = _gen_uid
 
 __builtins__.__dict__['datastore'] = {
-	'dhcp' : {
-		'state' : 'off'
+	'general' : {
+		'interfaces' : psutil.net_if_addrs()
 	},
+
+	'dhcp' : {
+		'state' : 'off',
+		'interface' : 'all',
+		'subnet' : '172.16.0.0',
+		'netmask' : '255.255.255.0',
+		'gateway' : '172.16.13.37'
+	},
+
 	'machines' : {
 		'default' : {
 			'iso' : 'archlinux-2019.05.01.iso',
@@ -34,6 +102,7 @@ __builtins__.__dict__['datastore'] = {
 			'iso' : 'none'
 		}
 	},
+
 	'configs' : {
 		'iso' : {
 			'none' : 'No ISO (PXE Off)',
@@ -70,6 +139,7 @@ __builtins__.__dict__['datastore'] = {
 		}
 	}
 }
+print(datastore['general'])
 __builtins__.__dict__['sockets'] = {}
 __builtins__.__dict__['sessions'] = {}
 
